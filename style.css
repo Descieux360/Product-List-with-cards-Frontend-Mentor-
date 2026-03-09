@@ -15,7 +15,6 @@ body{
 
 main{
     display: flex;
-    justify-content: center;
     align-items: center;
 }
 
@@ -31,11 +30,36 @@ main{
     margin: 10px;
 }
 
-#dessert-container .card .image-wrapper img{
+#dessert-container .card .image-wrapper .dessert-image{
     display: block;
     width: 190px;
     height: 200px;
     object-fit: cover;
+}
+
+ .plus,
+.minus{
+    height: 20px;
+    width: 20px;
+    padding: 5px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.active_buttons{
+    display: flex;
+    justify-content: space-around;
+    position: relative;
+    align-items: center;
+    justify-items: center;
+    border: none;
+    border-radius: 20px;
+    margin: -20px auto 0 auto;
+    z-index: 100;
+    width: 130px;
+    height: 40px;
+    cursor: pointer;  
+    background-color: hsl(7, 20%, 60%) ; 
 }
 
 #dessert-container .card .image-wrapper button{
@@ -68,8 +92,22 @@ main{
     color: gray;
 }
 
+#dessert-container .card .description-wrapper img{
+    height: 20px;
+}
+
 #cart-container{
     width: 300px;
+    padding: 10px;
+    align-self:flex-start;
+    background-color: rgb(231, 231, 231);
+    margin-top: 10px;
+}
+
+.empty-cart-img{
+    width: max-content;
+    display: block;
+    margin: 0 auto;
 }
 
 
