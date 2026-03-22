@@ -110,6 +110,14 @@ main{
     margin: 0 auto;
 }
 
+#confirm-container{
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    background-color: white;
+    border-radius: 20px;
+}
+
 
 .attribution {
     font-size: 11px;

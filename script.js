@@ -1,4 +1,4 @@
-import {cards} from './data.js'
+import {cards} from './data.js';
 
 const main = document.getElementById("main");
 
@@ -6,11 +6,24 @@ const dessert_container = document.getElementById("dessert-container");
 
 const cart_container = document.getElementById("cart-container");
 
+const cart_item_container = document.createElement('ul');
+cart_item_container.classList.add('cart-item-container');
+
+const confirmContainer = document.createElement('div');
+confirmContainer.setAttribute('id','confirm-container');
+
+let id = 0;
+
+
 function renderCards(){
     
     cards.forEach((element) =>{
 
         element.quantity = 0;
+
+        element.id = id;
+
+        id++;
 
         const card_containerEl = document.createElement("div");
         card_containerEl.classList.add("card");
@@ -37,17 +50,12 @@ function renderCard(card){
     dessert_imageEl.classList.add('dessert-image');
     image_wrapperEl.append(dessert_imageEl);
 
-    // quantity logic
     if(card.quantity === 0){
         const button =  document.createElement("button");
+        button.dataset.id = card.id;
+        button.classList.add(`btn-add`);
         button.innerHTML = `<img src = "assets/images/icon-add-to-cart.svg" class = "add-to-card"> add to cart`;
         image_wrapperEl.append(button);
-       // put adding logic here
-       button.addEventListener('click', ()=>{
-          card.quantity += 1;
-          updateCart(card.name, card.price, card.quantity);
-          renderCard(card);
-        });
     } 
     if( card.quantity > 0 ){
           
@@ -57,13 +65,9 @@ function renderCard(card){
 
         const plus = document.createElement('img');
         plus.setAttribute("src", "assets/images/icon-increment-quantity.svg");
+        plus.dataset.id = card.id;
         plus.classList.add('plus');
         active_buttons_wrapperEl.append(plus);
-        plus.addEventListener("click",()=>{
-            card.quantity += 1;
-            updateCart(card.name, card.price, card.quantity);
-            renderCard(card);
-        });
 
         const numberOfItems = document.createElement('span');
         numberOfItems.innerText = `${card.quantity}`;
@@ -71,164 +75,178 @@ function renderCard(card){
 
         const minus = document.createElement('img');
         minus.setAttribute("src", "assets/images/icon-decrement-quantity.svg");  
+        minus.dataset.id = card.id;
         minus.classList.add('minus');
-        active_buttons_wrapperEl.append(minus);
-        minus.addEventListener('click',()=>{
-            card.quantity -= 1;
-            updateCart(card.name, card.price, card.quantity);
-            renderCard(card);
-        });      
-    }
-
-    const description_wrapper = document.createElement('div');
-    description_wrapper.classList.add('description-wrapper');
-    container.append(description_wrapper);
-
-    const name = document.createElement('p');
-    name.classList.add('name');
-    name.innerText = card.name;
-    description_wrapper.append(name);
-  
-    const category = document.createElement('p');
-    category.classList.add('category');
-    category.innerText = card.category;
-    description_wrapper.append(category); 
- 
-    const price = document.createElement('p');
-    price.classList.add('price');
-    price.innerText = card.price + '$';
-    description_wrapper.append(price);    
+        active_buttons_wrapperEl.append(minus); 
+    } 
 }
 
-    const orderTotal = document.createElement('div');
-    orderTotal.innerHTML = `<p>Order Total</p>   <span>$${showTotal().totalPrice}</span>`;
+function updateQuantity(card, action = "add-item"){
+       if(action === "add-item"){
+            card.quantity++;
+       } 
+       if(action === "remove-item"){
+            if(card.quantity > 0) card.quantity--;       
+       }
+       if(action === "delete-item"){
+            card.quantity = 0; 
+       } 
+}
+
+function renderCart(){
+
+    const numberOfItems = document.createElement('h2');
+    numberOfItems.innerText = `Your Cart(0)`;
+    numberOfItems.classList.add("number-of-items");
+
+    const empty_cart_img = document.createElement('img');
+    empty_cart_img.setAttribute('src','./assets/images/illustration-empty-cart.svg');
+    empty_cart_img.classList.add('empty_cart_img');
+
+    const empty_cart_msg = document.createElement('p');
+    empty_cart_msg.innerText = "Your added items will appear here";
+    empty_cart_msg.classList.add("empty_cart_msg");
+
+    const order_total = document.createElement('div');
+    order_total.classList.add('order-total');
+    order_total.innerHTML = `<p>Order Total</p> $<span>${Total().total}</span>`;
 
     const carbon_neutral = document.createElement('div');
-    carbon_neutral.innerHTML = `<img src = "./assets/images/icon-carbon-neutral.svg" /> <p> This delivry is carbon neutral<p/>`
+    carbon_neutral.innerHTML = `<img src = "./assets/images/icon-carbon-neutral.svg"> <p>This delivery is carbon neutral</p>`;
 
-    const confirmOrder = document.createElement('button');
-    confirmOrder.setAttribute("id","confirm order");
-    confirmOrder.innerText = "Confirm Order";
-    confirmOrder.addEventListener("click",()=>{
-         displayConfirmation();
-    });    
+    const confirm_order = document.createElement('button');
+    confirm_order.addEventListener("click", ()=>{
+        renderConfirm();
+    });
+    confirm_order.innerText = "Confirm Order";
 
+    if(Total().totalQuantity === 0){ 
+        cart_container.innerHTML = "";
 
-function updateCart(name, price, quantity){
-   const numberOfElements = document.getElementById("number-of-items");
-   numberOfElements.innerHTML = `Your Cart (${showTotal().total})`;
+        cart_container.append(numberOfItems,empty_cart_img,empty_cart_msg);
+    } else {
+        if(document.querySelector('.empty_cart_msg') || document.querySelector('.empty_cart_img')){
+            document.querySelector('.empty_cart_msg').remove();
+            document.querySelector('.empty_cart_img').remove();             
+            cart_container.append(cart_item_container,order_total,carbon_neutral,confirm_order);        
+        }
+    }
+    if(Total().totalQuantity > 0 ){
+        document.querySelector('.number-of-items').innerText = `Your Cart(${Total().totalQuantity})`;
+        document.querySelector('.order-total').innerHTML = `<p>Order Total</p> $<span>${Total().total}</span>`;
+    }
+}
 
-   const cart_state= document.getElementById("cart-state");
+function selectedItems(card){
+    const list_item =  document.createElement('li');
+    let delBtn = document.createElement('img');
+    delBtn.setAttribute('src','./assets/images/icon-remove-item.svg');
+    delBtn.dataset.id = card.id;
+    delBtn.classList.add('delete')
 
-   const emptyCart = document.createElement("div");
-   emptyCart.innerHTML = `<div id="empty-cart">
-                            <img src="assets/images/illustration-empty-cart.svg">
-                            <div>Your added Items will appear here</div>
-                            `;
-   if(showTotal().total === 0){
-    cart_state.innerHTML = "";
-    cart_state.append(emptyCart); 
-   } 
+    if(document.querySelector(`#cart_item${card.id}`)){
 
-   if(quantity === 0 && cart_state.querySelector(`#${name.replace(/\s+/g, "")}`) !== null){
-        cart_state.querySelector(`#${name.replace(/\s+/g, "")}`).remove();
-        orderTotal.innerHTML = `<p>Order Total</p>   <span>$${showTotal().totalPrice}</span>`;
-   }
+        document.querySelector(`#cart_item${card.id}`).innerHTML = `
+                           <div id = "cart_item${card.id}" class = "list_item_info">
+                              <h3>${card.name}</h3>
+                              <span>${card.quantity}x</span>
+                              <span>@${card.price}$</span>
+                              <span>$${card.quantity * card.price}</span>
+                           </div>`;                  
+    } else {
         
+        list_item.innerHTML = `<div id = "cart_item${card.id}" class = "list_item_info">
+                                <h3>${card.name}</h3>
+                                <span>${card.quantity}x</span>
+                                <span>@${card.price}$</span>
+                                <span>$${card.quantity * card.price}</span>
+                            </div>`;
+        list_item.append(delBtn);                    
+        cart_item_container.append(list_item);
+    }
 
-   if(quantity > 0){
-    if(document.querySelector("#empty-cart"))
-        document.querySelector("#empty-cart").remove();
-    if(cart_state.querySelector(`#${name.replace(/\s+/g, "")}`)){
-        cart_state.querySelector(`#${name.replace(/\s+/g, "")}`).innerHTML = `<div>${name}</div>
-                        <div> 
-                        <div><span>x ${quantity}</span> <span>@$${price}</span> <span>$${quantity * price}</span></div> 
-                     </div>`;
-        const removeItem = document.createElement('img');
-        removeItem.setAttribute("src","./assets/images/icon-remove-item.svg");
-        cart_state.querySelector(`#${name.replace(/\s+/g, "")}`).append(removeItem);    
-        orderTotal.innerHTML = `<p>Order Total</p>   <span>$${showTotal().totalPrice}</span>`;        
-        return;             
-      };
-      const itemElement = document.createElement('li');
-      itemElement.setAttribute("id",`${name.replace(/\s+/g, "")}`);
-      itemElement.style.background = "green";
-      cart_state.append(itemElement);
-
-      itemElement.innerHTML = `<div>${name}</div>
-                               <div> 
-                                    <div><span>x ${quantity}</span> <span>@$${price}</span> <span>$${quantity * price}</span></div> 
-                                </div>`;
-
-      const removeItem = document.createElement('img');
-      removeItem.setAttribute("src","./assets/images/icon-remove-item.svg");
-      itemElement.append(removeItem);
-      removeItem.addEventListener("click", ()=>{
-        removeItem.parentElement.remove();
-        quantity = 0;
-      }); 
-      orderTotal.innerHTML = `<p>Order Total</p>   <span>$${showTotal().totalPrice}</span>`;
-      cart_container.append(orderTotal, carbon_neutral, confirmOrder);
-   }
-} 
-
-function displayConfirmation(){
-     const modalContainer = document.createElement('div');
-     modalContainer.style.position = 'fixed';
-     modalContainer.style.backgroundColor = 'red';
-     modalContainer.style.zIndex = 100;
-     modalContainer.style.top = 0;
-     const confirmHearder = document.createElement('div');
-     confirmHearder.innerHTML = `<img src = './assets/images/icon-order-confirmed.svg'>
-                                <h2>Order confirm</h2>
-                                <h4>We hope you enjoy your Food</h4>`;
-     modalContainer.append(confirmHearder);   
-     const ItemsContainer = document.createElement('div');
-     let selectedItems = cards.filter((element)=> element.quantity > 0);
-     selectedItems.forEach((item) =>{
-        const itemElement = document.createElement('li');
-        itemElement.innerHTML = `<img src = ${item.image.thumbnail} /> 
-                                 <div>
-                                    <h2>${item.name}</h2>
-                                    <div><span>${item.quantity}x</span> <span>@$${item.price}</span></div>
-                                 </div>
-                                 <div>
-                                   ${item.price * item.quantity}
-                                 </div>`;
-        ItemsContainer.append(itemElement);                         
-     });     
-     modalContainer.append(ItemsContainer); 
-     let totalEl = document.createElement('div');
-     totalEl.innerHTML = `<span>Order Total</span> <span>${showTotal().totalPrice}</span>`;
-     let confirmButton = document.createElement('button');
-     confirmButton.innerText = 'Start New order';
-     confirmButton.addEventListener("click",function (){
-         cards.forEach((e)=>{
-            e.quantity = 0;
-            updateCart(e.name, e.price, e.quantity);
-         });
-         cart_container.remove(orderTotal, carbon_neutral, confirmOrder);
-         dessert_container.innerHTML = "";
-         renderCards();
-     });
-     modalContainer.append(totalEl, confirmButton);
-     main.append(modalContainer);                    
+    if(card.quantity === 0 && document.querySelector(`#cart_item${card.id}`)){
+        const el = document.querySelector(`#cart_item${card.id}`);
+        el.innerHTML = "";
+        if(el) el.parentElement.remove();
+        return;
+    } 
+    if(Total().total === 0 ){
+       cart_item_container.innerHTML = ""; 
+    }
+     
 }
 
-function showTotal(){
-    let totalPrice = 0;
+function renderConfirm(){
+    const confirm_header = document.createElement('div');
+    confirm_header.innerHTML = `
+                                <img src = "./assets/images/icon-order-confirmed.svg" />
+                                <h2>Order Confirmation</h2>
+                                <p>We hope you enjoy your food</p>
+    `;
+    confirmContainer.append(confirm_header);
+    const confirmedList = document.createElement('li');
+    cards.forEach((item)=>{
+         if(item.quantity > 0){
+            const itemEl = document.createElement('li');
+            itemEl.innerHTML = `
+                               <div class = "confirm-item-image">
+                                  <img src = "${item.image.thumbnail}" />
+                                  <div class = "confirm-item-prop">
+                                      <p>${item.name}</p>
+                                      <div>
+                                        <span>${item.quantity}x</span>@$${item.price}<span></span>
+                                      </div>
+                                  </div>
+                               </div>
+                               <div class = "confirm-item-total">
+                                   ${item.quantity * item.price}
+                               </div>
+            `;
+            confirmedList.append(itemEl);  
+         }
+    });
+    const confirm_reset = document.createElement('button');
+    confirm_reset.innerText = "Start New Order";
+    confirmContainer.append(confirm_header,confirmedList,confirm_reset);
+    main.append(confirmContainer);
+}
+
+
+function Total(){
     let total = 0;
-    for ( let element of cards){
-        totalPrice = element.price * element.quantity + totalPrice;
-        total += element.quantity;
+    let totalQuantity = 0;
+    for(let i = 0; i< cards.length; i++){
+       total = cards[i].price * cards[i].quantity + total;
+       totalQuantity = cards[i].quantity + totalQuantity;
     }
-    if(isNaN(total)){
-    total = 0
-    totalPrice = 0;
-    }
-    return {totalPrice, total};
+    if(isNaN(totalQuantity))
+        return {total , totalQuantity : 0 }
+    return {total, totalQuantity};
 }
 
-updateCart();
+document.addEventListener("click", (event) => {
+    const target = event.target;
+    const id = target.dataset.id;
+    if (!id) return;
 
+    const card = cards.find(c => c.id == id);
+    //A cleaner version of writting this const card = cards[id];
+
+    if (target.classList.contains("btn-add") || target.classList.contains("plus")) {
+        updateQuantity(card, "add-item");
+    }
+
+    if (target.classList.contains("minus")) {
+        updateQuantity(card, "remove-item");
+    }
+    if(target.classList.contains("delete")){
+        updateQuantity(card, "delete-item");
+    }
+    renderCard(card);
+    renderCart();
+    selectedItems(card);
+});
+
+renderCart();
 renderCards();
