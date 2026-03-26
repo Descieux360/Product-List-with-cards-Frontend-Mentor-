@@ -1,8 +1,18 @@
 import {cards} from './data.js';
 
+const body = document.getElementById('body');
+
 const main = document.getElementById("main");
 
 const dessert_container = document.getElementById("dessert-container");
+
+const dessert_wrapper = document.createElement("div");
+dessert_wrapper.classList.add('dessert-wrapper');
+
+const heading = document.createElement('h1');
+heading.innerText = "Desserts";
+
+dessert_container.append(heading,dessert_wrapper)
 
 const cart_container = document.getElementById("cart-container");
 
@@ -13,6 +23,9 @@ const confirmContainer = document.createElement('div');
 confirmContainer.setAttribute('id','confirm-container');
 
 let id = 0;
+
+let isConfirmed = false;
+const shade = document.createElement('div');
 
 
 function renderCards(){
@@ -30,7 +43,7 @@ function renderCards(){
         
         element.domRef = card_containerEl;
 
-        dessert_container.append(card_containerEl);
+        dessert_wrapper.append(card_containerEl);
 
         renderCard(element);
     });    
@@ -49,6 +62,14 @@ function renderCard(card){
     dessert_imageEl.setAttribute("src",card.image.desktop);
     dessert_imageEl.classList.add('dessert-image');
     image_wrapperEl.append(dessert_imageEl);
+
+    const card_details = document.createElement('div');
+    card_details.classList.add('card_details');
+    card_details.innerHTML = `
+      <p>${card.category}</p>
+      <p>${card.name}</p>
+      <p>$${card.price}</p>
+    `;
 
     if(card.quantity === 0){
         const button =  document.createElement("button");
@@ -79,6 +100,7 @@ function renderCard(card){
         minus.classList.add('minus');
         active_buttons_wrapperEl.append(minus); 
     } 
+    container.append(card_details);
 }
 
 function updateQuantity(card, action = "add-item"){
@@ -109,13 +131,23 @@ function renderCart(){
 
     const order_total = document.createElement('div');
     order_total.classList.add('order-total');
-    order_total.innerHTML = `<p>Order Total</p> $<span>${Total().total}</span>`;
+    order_total.innerHTML = `<p>Order Total</p> <span>$${Total().total}</span>`;
 
     const carbon_neutral = document.createElement('div');
-    carbon_neutral.innerHTML = `<img src = "./assets/images/icon-carbon-neutral.svg"> <p>This delivery is carbon neutral</p>`;
+    carbon_neutral.classList.add('carbon-neutral');
+    carbon_neutral.innerHTML = `<img src = "./assets/images/icon-carbon-neutral.svg"> <p>This is a <strong>carbon neutral</strong> delivery</p>`;
 
     const confirm_order = document.createElement('button');
+    confirm_order.classList.add('confirm_order_btn');
     confirm_order.addEventListener("click", ()=>{
+        isConfirmed = true;
+        if(isConfirmed === true){
+            shade.classList.add('visible');
+            body.append(shade);
+            console.log("i was executed");
+        } else{
+            shade.remove();
+        } 
         renderConfirm();
     });
     confirm_order.innerText = "Confirm Order";
@@ -133,7 +165,7 @@ function renderCart(){
     }
     if(Total().totalQuantity > 0 ){
         document.querySelector('.number-of-items').innerText = `Your Cart(${Total().totalQuantity})`;
-        document.querySelector('.order-total').innerHTML = `<p>Order Total</p> $<span>${Total().total}</span>`;
+        document.querySelector('.order-total').innerHTML = `<p>Order Total</p> <span>$${Total().total}</span>`;
     }
 }
 
@@ -185,7 +217,7 @@ function renderConfirm(){
                                 <p>We hope you enjoy your food</p>
     `;
     confirmContainer.append(confirm_header);
-    const confirmedList = document.createElement('li');
+    const confirmedList = document.createElement('ul');
     cards.forEach((item)=>{
          if(item.quantity > 0){
             const itemEl = document.createElement('li');
@@ -195,21 +227,39 @@ function renderConfirm(){
                                   <div class = "confirm-item-prop">
                                       <p>${item.name}</p>
                                       <div>
-                                        <span>${item.quantity}x</span>@$${item.price}<span></span>
+                                        <span>${item.quantity}x</span><span>@$${item.price}</span>
                                       </div>
                                   </div>
                                </div>
                                <div class = "confirm-item-total">
-                                   ${item.quantity * item.price}
+                                   $${item.quantity * item.price}
                                </div>
             `;
             confirmedList.append(itemEl);  
          }
     });
     const confirm_reset = document.createElement('button');
+    confirm_reset.classList.add('confirm_reset');
     confirm_reset.innerText = "Start New Order";
+    confirm_reset.addEventListener('click', ()=>{
+       confirmContainer.innerHTML = "";
+       confirmContainer.remove();
+       isConfirmed = false;
+        if(isConfirmed === true){
+            shade.classList.add('visible');
+            body.append(shade);
+        } else{
+            shade.remove();
+        } 
+       cards.forEach((item)=>{
+          item.quantity = 0;
+          selectedItems(item);
+          renderCard(item); 
+       });
+        renderCart();
+    });
     confirmContainer.append(confirm_header,confirmedList,confirm_reset);
-    main.append(confirmContainer);
+    body.append(confirmContainer);
 }
 
 
