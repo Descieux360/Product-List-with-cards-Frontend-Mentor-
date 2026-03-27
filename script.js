@@ -59,6 +59,7 @@ function renderCard(card){
     container.append(image_wrapperEl);
 
     const dessert_imageEl = document.createElement('img');
+    dessert_imageEl.dataset.id = card.id;
     dessert_imageEl.setAttribute("src",card.image.desktop);
     dessert_imageEl.classList.add('dessert-image');
     image_wrapperEl.append(dessert_imageEl);
@@ -300,3 +301,30 @@ document.addEventListener("click", (event) => {
 
 renderCart();
 renderCards();
+
+const images = document.querySelectorAll(".dessert-image");
+
+function updateImages() {
+  const isMobile = window.innerWidth <= 375;
+  const isTablet = window.innerWidth > 375 && window.innerWidth <= 768; 
+  console.log(isTablet, isMobile);
+  images.forEach(img => {
+    if (isMobile) {
+      img.src = cards[img.dataset.id].image.mobile;
+    }
+    else if(isTablet){
+      img.src = cards[img.dataset.id].image.tablet;  
+    } else{
+       img.src = cards[img.dataset.id].image.desktop; 
+    }
+  });
+}
+
+updateImages();
+
+let timeout;
+
+window.addEventListener("resize", () => {
+  clearTimeout(timeout);
+  timeout = setTimeout(updateImages, 150);
+});
