@@ -24,6 +24,8 @@ confirmContainer.setAttribute('id','confirm-container');
 
 let id = 0;
 
+const image = 'desktop';
+
 let isConfirmed = false;
 const shade = document.createElement('div');
 
@@ -58,9 +60,22 @@ function renderCard(card){
     image_wrapperEl.classList.add("image-wrapper");
     container.append(image_wrapperEl);
 
+    let imgUrl;
+    const isMobile = window.innerWidth <= 375;
+    const isTablet = window.innerWidth > 375 && window.innerWidth <= 768; 
+    console.log(isTablet, isMobile);
+    if (isMobile) {
+      imgUrl= card.image.mobile;
+    }
+    else if(isTablet){
+      imgUrl = card.image.tablet; 
+    } else{
+      imgUrl = card.image.desktop; 
+    }
+
     const dessert_imageEl = document.createElement('img');
     dessert_imageEl.dataset.id = card.id;
-    dessert_imageEl.setAttribute("src",card.image.desktop);
+    dessert_imageEl.setAttribute("src",imgUrl);
     dessert_imageEl.classList.add('dessert-image');
     image_wrapperEl.append(dessert_imageEl);
 
@@ -301,30 +316,3 @@ document.addEventListener("click", (event) => {
 
 renderCart();
 renderCards();
-
-const images = document.querySelectorAll(".dessert-image");
-
-function updateImages() {
-  const isMobile = window.innerWidth <= 375;
-  const isTablet = window.innerWidth > 375 && window.innerWidth <= 768; 
-  console.log(isTablet, isMobile);
-  images.forEach(img => {
-    if (isMobile) {
-      img.src = cards[img.dataset.id].image.mobile;
-    }
-    else if(isTablet){
-      img.src = cards[img.dataset.id].image.tablet;  
-    } else{
-       img.src = cards[img.dataset.id].image.desktop; 
-    }
-  });
-}
-
-updateImages();
-
-let timeout;
-
-window.addEventListener("resize", () => {
-  clearTimeout(timeout);
-  timeout = setTimeout(updateImages, 150);
-});
